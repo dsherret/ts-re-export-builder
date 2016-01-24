@@ -1,0 +1,44 @@
+{
+  "name": "ts-base-project",
+  "version": "0.1.0",
+  "description": "Base project for typescript libraries",
+  "main": "dist/main.js",
+  "scripts": {
+    "test": "gulp test && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
+    "build": "gulp typescript"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dsherret/ts-base-project.git"
+  },
+  "keywords": [
+    "typescript",
+    "code"
+  ],
+  "author": "David Sherret",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dsherret/ts-base-project/issues"
+  },
+  "homepage": "https://github.com/dsherret/ts-base-project#readme",
+  "typescript": {
+    "definition": "ts-base-project.d.ts"
+  },
+  "dependencies": {
+    "glob": "^6.0.4",
+    "typescript": "^1.7.3"
+  },
+  "devDependencies": {
+    "coveralls": "^2.11.6",
+    "del": "^2.0.2",
+    "gulp": "^3.9.0",
+    "gulp-istanbul": "^0.10.3",
+    "gulp-replace": "^0.5.4",
+    "gulp-mocha": "^2.2.0",
+    "gulp-sourcemaps": "^1.6.0",
+    "gulp-tslint": "^4.1.1",
+    "gulp-typescript": "^2.9.2",
+    "mocha": "^2.3.3",
+    "tslint": "^3.1.1"
+  }
+}
