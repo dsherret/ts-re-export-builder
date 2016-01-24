@@ -5,7 +5,8 @@
   "main": "dist/main.js",
   "scripts": {
     "test": "gulp test && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
-    "build": "gulp typescript"
+    "build": "gulp typescript",
+    "pre-publish": "gulp tslint && gulp test"
   },
   "repository": {
     "type": "git",

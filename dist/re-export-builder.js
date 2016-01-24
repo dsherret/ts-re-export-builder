@@ -3,35 +3,29 @@ var path = require("path");
 var fs = require("fs");
 var utils_1 = require("./utils");
 var ReExportBuilder = (function () {
-    function ReExportBuilder(globMatches, finishedCallback) {
+    function ReExportBuilder(globMatches, onFinish) {
         var _this = this;
-        this.finishedCallback = finishedCallback;
+        this.onFinish = onFinish;
+        this.reExportFilePaths = [];
         this.finishedCount = 0;
         this.setGlobMatchesToDirectoryGroups(globMatches);
         this.directoryGroups.forEach(function (group) {
-            _this.handleFolderWithFiles(group.key, group.values);
+            _this.handleFolderWithFiles(group.directory, group.files);
         });
     }
-    ReExportBuilder.createReExportFiles = function (globMatches, finishCallback) {
-        return new ReExportBuilder(globMatches, finishCallback);
+    ReExportBuilder.createReExportFiles = function (globMatches, onFinish) {
+        return new ReExportBuilder(globMatches, onFinish);
     };
     ReExportBuilder.prototype.setGlobMatchesToDirectoryGroups = function (globMatches) {
         var groups = utils_1.groupBy(globMatches, function (item) { return path.dirname(item); });
-        var mainParentDirectory = this.getMainParentDirectory(groups);
-        this.directoryGroups = groups.filter(function (groups) { return groups.key !== mainParentDirectory; }).sort(function (a, b) { return b.key.length - a.key.length; });
-    };
-    ReExportBuilder.prototype.getMainParentDirectory = function (groups) {
-        var shortestDir = groups.length > 0 ? groups[0].key : "";
-        groups.forEach(function (group) {
-            if (group.key.length < shortestDir.length) {
-                shortestDir = group.key;
-            }
-        });
-        return shortestDir;
+        this.directoryGroups = groups.map(function (g) { return { directory: g.key, files: g.values }; })
+            .sort(function (a, b) { return b.directory.length - a.directory.length; });
+        this.directoryGroups.pop();
     };
     ReExportBuilder.prototype.handleFolderWithFiles = function (folderName, files) {
         var _this = this;
-        var reExportFilePath = path.join(folderName, "..", path.basename(folderName) + ".ts");
+        var reExportFilePath = utils_1.toForwardSlashes(path.join(folderName, "..", path.basename(folderName) + ".ts"));
+        this.reExportFilePaths.push(reExportFilePath);
         fs.readFile(reExportFilePath, "utf8", function (err, data) {
             _this.handleFileWithData({
                 reExportFilePath: reExportFilePath,
@@ -43,11 +37,11 @@ var ReExportBuilder = (function () {
     ReExportBuilder.prototype.handleFileWithData = function (obj) {
         if (ensure_is_re_export_file_1.ensureIsReExportFile(obj.data)) {
             this.writeReExportFile(obj);
+            this.addReExportFileToDirectoryGroups(obj.reExportFilePath);
         }
         else {
             console.warn("Skipping \"" + obj.reExportFilePath + "\". The file did not only contain export statements.");
         }
-        this.addReExportFileToDirectoryGroups(obj.reExportFilePath);
     };
     ReExportBuilder.prototype.writeReExportFile = function (_a) {
         var _this = this;
@@ -61,15 +55,15 @@ var ReExportBuilder = (function () {
     };
     ReExportBuilder.prototype.addReExportFileToDirectoryGroups = function (reExportFilePath) {
         var baseGroup = path.dirname(reExportFilePath);
-        var baseGroupIndex = this.directoryGroups.map(function (g) { return g.key; }).indexOf(baseGroup);
+        var baseGroupIndex = this.directoryGroups.map(function (g) { return g.directory; }).indexOf(baseGroup);
         if (baseGroupIndex >= 0) {
-            this.directoryGroups[baseGroupIndex].values.push(reExportFilePath);
+            this.directoryGroups[baseGroupIndex].files.push(reExportFilePath);
         }
     };
     ReExportBuilder.prototype.onFileFinished = function () {
         this.finishedCount++;
-        if (this.finishedCount === this.directoryGroups.length && typeof this.finishedCallback === "function") {
-            this.finishedCallback();
+        if (this.finishedCount === this.directoryGroups.length && typeof this.onFinish === "function") {
+            this.onFinish(this.reExportFilePaths);
         }
     };
     return ReExportBuilder;

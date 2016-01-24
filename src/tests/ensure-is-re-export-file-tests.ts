@@ -14,8 +14,12 @@ describe("ensureIsReExportFile", () => {
         assert.equal(ensureIsReExportFile("   \r\n    \n    \r\n\r\n"), true);
     });
 
-    it("should return true for a match", () => {
+    it("should return true for a match with single quotes", () => {
         assert.equal(ensureIsReExportFile("export * from 'some file';"), true);
+    });
+
+    it("should return true for a match with double quotes", () => {
+        assert.equal(ensureIsReExportFile('export * from "some file";'), true);
     });
 
     it("should return true for a match on multiple lines in different formats", () => {

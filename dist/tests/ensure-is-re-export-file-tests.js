@@ -10,8 +10,11 @@ describe("ensureIsReExportFile", function () {
     it("should return true for empty text", function () {
         assert.equal(ensure_is_re_export_file_1.ensureIsReExportFile("   \r\n    \n    \r\n\r\n"), true);
     });
-    it("should return true for a match", function () {
+    it("should return true for a match with single quotes", function () {
         assert.equal(ensure_is_re_export_file_1.ensureIsReExportFile("export * from 'some file';"), true);
+    });
+    it("should return true for a match with double quotes", function () {
+        assert.equal(ensure_is_re_export_file_1.ensureIsReExportFile('export * from "some file";'), true);
     });
     it("should return true for a match on multiple lines in different formats", function () {
         assert.equal(ensure_is_re_export_file_1.ensureIsReExportFile("export * from 'some file';\nexport * from \"other file\";\r\nexport * from \"./test/next-tests\";"), true);

@@ -1,16 +1,8 @@
 import * as glob from "glob";
 import {ReExportBuilder} from "./re-export-builder";
 
-interface Options {
-    files: string;
-}
-
-export function build({files}: Options) {
+export function build({ files, onFinish }: { files: string; onFinish: (reExportFiles?: string[]) => void }) {
     glob(files, (err, matches) => {
-        if (err) {
-            throw err;
-        }
-
-        ReExportBuilder.createReExportFiles(matches);
+        ReExportBuilder.createReExportFiles(matches, onFinish);
     });
 }

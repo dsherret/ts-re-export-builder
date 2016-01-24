@@ -1,45 +1,39 @@
 ﻿import {ensureIsReExportFile} from "./ensure-is-re-export-file";
 import * as path from "path";
 import * as fs from "fs";
-import {groupBy} from "./utils";
+import {groupBy, toForwardSlashes} from "./utils";
 
 export class ReExportBuilder {
-    private directoryGroups: { key: string; values: string[] }[];
+    private directoryGroups: { directory: string; files: string[] }[];
+    private reExportFilePaths: string[] = [];
     private finishedCount: number = 0;
 
     // make private once typescript supports it
-    constructor(globMatches: string[], private finishedCallback?: () => void) {
+    constructor(globMatches: string[], private onFinish?: (reExportFilePaths?: string[]) => void) {
         this.setGlobMatchesToDirectoryGroups(globMatches);
 
         this.directoryGroups.forEach((group) => {
-            this.handleFolderWithFiles(group.key, group.values);
+            this.handleFolderWithFiles(group.directory, group.files);
         });
     }
 
-    static createReExportFiles(globMatches: string[], finishCallback?: () => void) {
-        return new ReExportBuilder(globMatches, finishCallback);
+    static createReExportFiles(globMatches: string[], onFinish?: (reExportFilePaths?: string[]) => void) {
+        return new ReExportBuilder(globMatches, onFinish);
     }
 
     private setGlobMatchesToDirectoryGroups(globMatches: string[]) {
         let groups = groupBy(globMatches, (item) => path.dirname(item));
-        let mainParentDirectory = this.getMainParentDirectory(groups);
-        this.directoryGroups = groups.filter(groups => groups.key !== mainParentDirectory).sort((a, b) => b.key.length - a.key.length); // length descending
-    }
+        this.directoryGroups = groups.map(g => { return { directory: g.key, files: g.values }})
+            .sort((a, b) => b.directory.length - a.directory.length); // length descending
 
-    private getMainParentDirectory(groups: { key: string; values: string[] }[]) {
-        let shortestDir = groups.length > 0 ? groups[0].key : "";
-
-        groups.forEach(group => {
-            if (group.key.length < shortestDir.length) {
-                shortestDir = group.key;
-            }
-        });
-
-        return shortestDir;
+        // since it is sorted in length descending, the last item in the array will be the main directory.
+        // remove it since it's not necessary
+        this.directoryGroups.pop();
     }
 
     private handleFolderWithFiles(folderName: string, files: string[]) {
-        const reExportFilePath = path.join(folderName, "..", path.basename(folderName) + ".ts");
+        const reExportFilePath = toForwardSlashes(path.join(folderName, "..", path.basename(folderName) + ".ts"));
+        this.reExportFilePaths.push(reExportFilePath);
 
         fs.readFile(reExportFilePath, "utf8", (err, data) => {
             this.handleFileWithData({
@@ -53,12 +47,11 @@ export class ReExportBuilder {
     private handleFileWithData(obj: { reExportFilePath: string; data: string; files: string[]; }) {
         if (ensureIsReExportFile(obj.data)) {
             this.writeReExportFile(obj);
+            this.addReExportFileToDirectoryGroups(obj.reExportFilePath);
         }
         else {
             console.warn(`Skipping "${obj.reExportFilePath}". The file did not only contain export statements.`);
         }
-
-        this.addReExportFileToDirectoryGroups(obj.reExportFilePath);
     }
 
     private writeReExportFile({ reExportFilePath, files }: { reExportFilePath: string; files: string[]; }) {
@@ -73,18 +66,18 @@ export class ReExportBuilder {
 
     private addReExportFileToDirectoryGroups(reExportFilePath: string) {
         const baseGroup = path.dirname(reExportFilePath);
-        const baseGroupIndex = this.directoryGroups.map((g) => g.key).indexOf(baseGroup);
+        const baseGroupIndex = this.directoryGroups.map(g => g.directory).indexOf(baseGroup);
 
         if (baseGroupIndex >= 0) {
-            this.directoryGroups[baseGroupIndex].values.push(reExportFilePath);
+            this.directoryGroups[baseGroupIndex].files.push(reExportFilePath);
         }
     }
 
     private onFileFinished() {
         this.finishedCount++;
 
-        if (this.finishedCount === this.directoryGroups.length && typeof this.finishedCallback === "function") {
-            this.finishedCallback();
+        if (this.finishedCount === this.directoryGroups.length && typeof this.onFinish === "function") {
+            this.onFinish(this.reExportFilePaths);
         }
     }
 }
