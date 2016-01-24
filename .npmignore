@@ -8,3 +8,5 @@
 *.csproj
 *.csproj.user
 *.sln
+/src
+/dist/tests
