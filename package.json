@@ -1,5 +1,5 @@
 {
-  "name": "ts-base-project",
+  "name": "ts-re-export-builder",
   "version": "0.1.0",
   "description": "Base project for typescript libraries",
   "main": "dist/main.js",
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dsherret/ts-base-project.git"
+    "url": "git+https://github.com/dsherret/ts-re-export-builder.git"
   },
   "keywords": [
     "typescript",
@@ -18,11 +18,11 @@
   "author": "David Sherret",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/dsherret/ts-base-project/issues"
+    "url": "https://github.com/dsherret/ts-re-export-builder/issues"
   },
-  "homepage": "https://github.com/dsherret/ts-base-project#readme",
+  "homepage": "https://github.com/dsherret/ts-re-export-builder#readme",
   "typescript": {
-    "definition": "ts-base-project.d.ts"
+    "definition": "ts-re-export-builder.d.ts"
   },
   "dependencies": {
     "glob": "^6.0.4",
