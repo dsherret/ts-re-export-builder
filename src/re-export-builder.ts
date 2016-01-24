@@ -23,7 +23,7 @@ export class ReExportBuilder {
 
     private setGlobMatchesToDirectoryGroups(globMatches: string[]) {
         let groups = groupBy(globMatches, (item) => path.dirname(item));
-        this.directoryGroups = groups.map(g => { return { directory: g.key, files: g.values }})
+        this.directoryGroups = groups.map(g => { return { directory: g.key, files: g.values }; })
             .sort((a, b) => b.directory.length - a.directory.length); // length descending
 
         // since it is sorted in length descending, the last item in the array will be the main directory.

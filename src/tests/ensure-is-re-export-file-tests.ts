@@ -19,7 +19,7 @@ describe("ensureIsReExportFile", () => {
     });
 
     it("should return true for a match with double quotes", () => {
-        assert.equal(ensureIsReExportFile('export * from "some file";'), true);
+        assert.equal(ensureIsReExportFile(`export * from "some file";`), true);
     });
 
     it("should return true for a match on multiple lines in different formats", () => {
